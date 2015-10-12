@@ -1,5 +1,9 @@
 package com.beyole.view;
 
+import java.util.HashSet;
+import java.util.Random;
+import java.util.Set;
+
 import com.beyole.imagecode.R;
 
 import android.content.Context;
@@ -60,11 +64,53 @@ public class ImageCodeView extends View {
 		mPaint.setTextSize(mTitleTextSize);
 		mBound = new Rect();
 		mPaint.getTextBounds(mTitleText, 0, mTitleText.length(), mBound);
+		// 设置点击事件
+		this.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				mTitleText = randomText();
+				// 重绘 可以在线程中直接执行
+				postInvalidate();
+			}
+		});
 	}
 
+	/**
+	 * 
+	 * @param widthMeasureSpec
+	 * @param heightMeasureSpec
+	 *           如果我们不进行测量，当设置控件宽度高度为wrap_content的时候，系统默认测量的是match_parent
+	 */
 	@Override
 	protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-		super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+		// 获取宽度设置类型
+		int widthMode = MeasureSpec.getMode(widthMeasureSpec);
+		int widthSize = MeasureSpec.getSize(widthMeasureSpec);
+		int heightMode = MeasureSpec.getMode(heightMeasureSpec);
+		int heightSize = MeasureSpec.getSize(heightMeasureSpec);
+		int width;
+		int height;
+		// 如果宽度是设置了精确的值时，直接把宽度赋值给width
+		if (widthMode == MeasureSpec.EXACTLY) {
+			width = widthSize;
+		} else {
+			mPaint.setTextSize(mTitleTextSize);
+			mPaint.getTextBounds(mTitleText, 0, mTitleText.length(), mBound);
+			float boundWidth = mBound.width();
+			width = (int) (getPaddingLeft() + getPaddingRight() + boundWidth);
+		}
+
+		if (heightMode == MeasureSpec.EXACTLY) {
+			height = heightSize;
+		} else {
+			mPaint.setTextSize(mTitleTextSize);
+			mPaint.getTextBounds(mTitleText, 0, mTitleText.length(), mBound);
+			float boundHeight = mBound.height();
+			height = (int) (getPaddingTop() + getPaddingBottom() + boundHeight);
+		}
+		// 设置测量的布局
+		setMeasuredDimension(width, height);
 	}
 
 	@Override
@@ -73,5 +119,19 @@ public class ImageCodeView extends View {
 		canvas.drawRect(0, 0, getMeasuredWidth(), getMeasuredHeight(), mPaint);
 		mPaint.setColor(mTitleColor);
 		canvas.drawText(mTitleText, getWidth() / 2 - mBound.width() / 2, getHeight() / 2 + mBound.height() / 2, mPaint);
+	}
+
+	private String randomText() {
+		Random random = new Random();
+		Set<Integer> integers = new HashSet<Integer>();
+		while (integers.size() < 4) {
+			int randomInt = random.nextInt(10);
+			integers.add(randomInt);
+		}
+		StringBuffer sb = new StringBuffer();
+		for (Integer integer : integers) {
+			sb.append("" + integer);
+		}
+		return sb.toString();
 	}
 }
